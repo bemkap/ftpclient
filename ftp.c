@@ -19,9 +19,9 @@ int inc(char*str){
   return r;
 }
 
-void valid(char*str){
-  str[strlen(str)-1]='\r';
-  str[strlen(str)  ]='\n';
+void valid(char*str,int sz){
+  int l=strlen(str);
+  if(sz>l){str[l-1]='\r';str[l]='\n';}
 }
 
 // read/write
@@ -30,7 +30,7 @@ void swrit(sock*s){
   printf("> ");
   memset(s->bf,0,sizeof(s->bf));
   fgets(s->bf,sizeof(s->bf),stdin);
-  valid(s->bf);
+  valid(s->bf,sizeof(s->bf));
   write(s->sfd,s->bf,sizeof(s->bf)-1);
 }
 
@@ -58,7 +58,7 @@ void hpasv(senv*s){
   sock_a(s->sdat,NULL,p1*256+p2);
 }
 
-void hlist(senv*s){return;}
+void hlist(senv*s){sread(s->sdat);}
 
 int shand(senv*s){
   int rc;
