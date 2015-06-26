@@ -58,7 +58,9 @@ void hpasv(senv*s){
   sock_a(s->sdat,NULL,p1*256+p2);
 }
 
-void hlist(senv*s){sread(s->sdat);}
+void hlist(senv*s){
+  sread(s->sdat);
+}
 
 int shand(senv*s){
   int rc;
@@ -84,7 +86,9 @@ int main(int argc,char*argv[]){
   //if(argc<2) return 1;
   int quit=0;
   senv*senv=senv_c();
+  sock_b(senv->scon,50000);
   sock_a(senv->scon,"ftp.microsoft.com",21);
+  sock_b(senv->sdat,50000);
   sread(senv->scon);
   while(!quit) quit=scmd(senv);
   senv_d(senv);
