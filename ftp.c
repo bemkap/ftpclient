@@ -15,7 +15,7 @@
 int inc(char*str){
   int r=0;
   r=str[0]=='1'||str[3]=='-';
-  while((str=strchr(str+1,'\n'))) if(str[1]) r=str[1]=='1'||str[4]=='-';
+  while(NULL!=(str=strchr(str+1,'\n'))) if(str[1]) r=str[1]=='1'||str[4]=='-';
   return r;
 }
 
@@ -51,17 +51,25 @@ void hpasv(senv*s){
   char*c;
   c=strchr(s->scon->bf,',');
   sscanf(c,",%*d,%*d,%*d,%d,%d",&p1,&p2);
+  if(NULL==s->sdat->sin){
+    s->sdat->sin=malloc(sizeof(struct sockaddr_in));
+    memcpy(s->sdat->sin,s->scon->sin,sizeof(*s->scon->sin));
+  }
   sock_a(s->sdat,NULL,p1*256+p2);
 }
+
+void hlist(senv*s){return;}
 
 int shand(senv*s){
   int rc;
   sscanf(s->scon->bf,"%d",&rc);
   switch(rc){
-  case 227: hpasv(s);return 0;
   case 221: return 1;
-  default : return 0;
+  case 226: hlist(s);break;
+  case 227: hpasv(s);break;
+  default : break;
   }
+  return 0;
 }
 
 int scmd(senv*s){
@@ -73,10 +81,10 @@ int scmd(senv*s){
 // main
 
 int main(int argc,char*argv[]){
-  if(argc<2) return 1;
+  //if(argc<2) return 1;
   int quit=0;
   senv*senv=senv_c();
-  sock_a(senv->scon,argv[1],21);
+  sock_a(senv->scon,"ftp.microsoft.com",21);
   sread(senv->scon);
   while(!quit) quit=scmd(senv);
   senv_d(senv);
