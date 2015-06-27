@@ -1,4 +1,5 @@
 #include<stdlib.h>
+#include<string.h>
 #include<netdb.h>
 #include"senv.h"
 
@@ -13,7 +14,8 @@ senv*senv_c(const char*ad){
   getaddrinfo(ad,NULL,&h,&aai);
   memcpy(s->sin,aai->ai_addr,sizeof(*s->sin));
   freeaddrinfo(aai);
-  
+
+  s->cm=ACTIVE;
   s->scon=sock_c();
   s->sdat=sock_c();
   return s;

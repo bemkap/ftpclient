@@ -2,8 +2,13 @@
 #include<stdlib.h>
 #include<string.h>
 #include<unistd.h>
+
+#include<netdb.h>
+#include<arpa/inet.h>
+
 #include"sock.h"
 #include"senv.h"
+#include"chec.h"
 
 // util
 
@@ -46,6 +51,7 @@ void hpasv(senv*s){
   char*c;
   c=strchr(s->scon->bf,',');
   sscanf(c,",%*d,%*d,%*d,%d,%d",&p1,&p2);
+  s->cm=PASSIVE;
   sock_a(s->sdat,p1*256+p2,s->sin);
 }
 
@@ -75,13 +81,26 @@ int scmd(senv*s){
 
 int main(int argc,char*argv[]){
   //if(argc<2) return 1;
+  /*
   int quit=0;
   senv*senv=senv_c("ftp.microsoft.com");
-  sock_b(senv->scon,50000);
-  sock_b(senv->sdat,50000);
   sock_a(senv->scon,21,senv->sin);
   sread(senv->scon);
   while(!quit) quit=scmd(senv);
   senv_d(senv);
+  */
+  struct sockaddr_in sin;
+  struct addrinfo h,*aai;
+  
+  memset(&h,0,sizeof(h));
+  h.ai_family=AF_INET;
+  h.ai_socktype=SOCK_STREAM;
+  getaddrinfo("localhost",NULL,&h,&aai);
+  memcpy(&sin,aai->ai_addr,sizeof(sin));
+  freeaddrinfo(aai);
+  char bu[100];
+  inet_ntop(AF_INET,&sin,bu,sizeof(bu));
+  printf("%s\n",bu);
+  
   return 0;
 }
