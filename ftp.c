@@ -27,23 +27,23 @@ void valid(char*str,int sz){
 
 // read/write
 
-void swrit(sock*s){
+int swrit(sock*s){
   printf("> ");
   memset(s->bf,0,sizeof(s->bf));
   fgets(s->bf,sizeof(s->bf),stdin);
   valid(s->bf,sizeof(s->bf));
-  write(s->sfd,s->bf,sizeof(s->bf)-1);
+  return write(s->sfd,s->bf,sizeof(s->bf)-1);
 }
 
-void sread(sock*s){
-  int n;
-  do{
-    memset(s->bf,0,sizeof(s->bf));
-    n=read(s->sfd,s->bf,sizeof(s->bf)-1);
-    s->bf[n]=0;
-    fputs(s->bf,stdout);
-  }while(inc(s->bf));
+int sread(sock*s){
+  int n=0;
+  memset(s->bf,0,sizeof(s->bf));
+  do{n+=read(s->sfd,s->bf,sizeof(s->bf)-1);}while(inc(s->bf)&&n<sizeof(s->bf)-1);
+  s->bf[n]=0;
+  return n;
 }
+
+int sputs(sock*s){return fputs(s->bf,stdout);}
 
 // handle
 
@@ -60,9 +60,14 @@ void hpasv(senv*s){
   }
   sock_a(s->sdat,p1*256+p2,s->sin);
 }
-
-void hlist(senv*s){
+void hlist(senv*s){sread(s->sdat);}
+void hretr(senv*s){
+  char fname[30];
   sread(s->sdat);
+  sscanf(fname,"retr %s",s->scon->bf);  
+  FILE*fout=fopen(fname,"w");
+  fwrite(s->sdat->bf,1,sizeof(s->sdat->bf),fout);
+  fclose(fout);
 }
 
 int shand(senv*s){
@@ -70,6 +75,7 @@ int shand(senv*s){
   sscanf(s->scon->bf,"%d",&rc);
   switch(rc){
   case 221: return 1;
+  case 125: hretr(s);break;
   case 226: hlist(s);break;
   case 227: hpasv(s);break;
   default : break;
