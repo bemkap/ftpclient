@@ -2,11 +2,6 @@
 #include<stdlib.h>
 #include<string.h>
 #include<unistd.h>
-
-#include<sys/socket.h>
-#include<arpa/inet.h>
-#include<netinet/in.h>
-
 #include"sock.h"
 #include"senv.h"
 #include"chec.h"
@@ -16,7 +11,8 @@
 int inc(char*str){
   int r=0;
   r=str[0]=='1'||str[3]=='-';
-  while(NULL!=(str=strchr(str+1,'\n'))) if(str[1]) r=str[1]=='1'||str[4]=='-';
+  while(NULL!=(str=strchr(str+1,'\n')))
+    if(str[1]) r=str[1]=='1'||str[4]=='-';
   return r;
 }
 
@@ -27,69 +23,31 @@ void valid(char*str,int sz){
 
 // read/write
 
-int swrit(sock*s){
+int sgets(sock*s){
+  int n;
   printf("> ");
   memset(s->bf,0,sizeof(s->bf));
-  fgets(s->bf,sizeof(s->bf),stdin);
+  n=fgets(s->bf,sizeof(s->bf),stdin);
   valid(s->bf,sizeof(s->bf));
-  return write(s->sfd,s->bf,sizeof(s->bf)-1);
+  return n;
 }
-
+int sputs(sock*s){return fputs(s->bf,stdout);}
+int swrit(sock*s){return write(s->sfd,s->bf,sizeof(s->bf)-1);}
 int sread(sock*s){
   int n=0;
   memset(s->bf,0,sizeof(s->bf));
-  do{n+=read(s->sfd,s->bf,sizeof(s->bf)-1);}while(inc(s->bf)&&n<sizeof(s->bf)-1);
+  do{n+=read(s->sfd,s->bf,sizeof(s->bf)-1);}while(inc(s->bf)&&0<n&&n<sizeof(s->bf)-1);
   s->bf[n]=0;
   return n;
 }
 
-int sputs(sock*s){return fputs(s->bf,stdout);}
-
-// handle
-
-void hpasv(senv*s){
-  int p1,p2;
-  char*c;
-  c=strchr(s->scon->bf,',');
-  sscanf(c,",%*d,%*d,%*d,%d,%d",&p1,&p2);
-  if(s->cm==PASSIVE){
-    sock_d(s->sdat);
-    s->sdat=sock_c();
-  }else{
-    s->cm=PASSIVE;
-  }
-  sock_a(s->sdat,p1*256+p2,s->sin);
-}
-void hlist(senv*s){sread(s->sdat);}
-void hretr(senv*s){
-  char fname[30];
-  sread(s->sdat);
-  sscanf(fname,"retr %s",s->scon->bf);  
-  FILE*fout=fopen(fname,"w");
-  fwrite(s->sdat->bf,1,sizeof(s->sdat->bf),fout);
-  fclose(fout);
-}
-
-int shand(senv*s){
-  int rc;
-  sscanf(s->scon->bf,"%d",&rc);
-  switch(rc){
-  case 221: return 1;
-  case 125: hretr(s);break;
-  case 226: hlist(s);break;
-  case 227: hpasv(s);break;
-  default : break;
-  }
-  return 0;
-}
+// main
 
 int scmd(senv*s){
-  swrit(s->scon);
-  sread(s->scon);
-  return shand(s);
+  sgets(s->scon);
+  hand*f=hget(s->scon->bf);
+  return f(s);
 }
-
-// main
 
 int main(int argc,char*argv[]){
   //if(argc<2) return 1;
