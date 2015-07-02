@@ -4,48 +4,15 @@
 #include<unistd.h>
 #include"sock.h"
 #include"senv.h"
+#include"soio.h"
+#include"hand.h"
 #include"chec.h"
-
-// util
-
-int inc(char*str){
-  int r=0;
-  r=str[0]=='1'||str[3]=='-';
-  while(NULL!=(str=strchr(str+1,'\n')))
-    if(str[1]) r=str[1]=='1'||str[4]=='-';
-  return r;
-}
-
-void valid(char*str,int sz){
-  int l=strlen(str);
-  if(sz>l){str[l-1]='\r';str[l]='\n';}
-}
-
-// read/write
-
-int sgets(sock*s){
-  int n;
-  printf("> ");
-  memset(s->bf,0,sizeof(s->bf));
-  n=fgets(s->bf,sizeof(s->bf),stdin);
-  valid(s->bf,sizeof(s->bf));
-  return n;
-}
-int sputs(sock*s){return fputs(s->bf,stdout);}
-int swrit(sock*s){return write(s->sfd,s->bf,sizeof(s->bf)-1);}
-int sread(sock*s){
-  int n=0;
-  memset(s->bf,0,sizeof(s->bf));
-  do{n+=read(s->sfd,s->bf,sizeof(s->bf)-1);}while(inc(s->bf)&&0<n&&n<sizeof(s->bf)-1);
-  s->bf[n]=0;
-  return n;
-}
 
 // main
 
 int scmd(senv*s){
   sgets(s->scon);
-  hand*f=hget(s->scon->bf);
+  hand f=hget(s->scon->bf);
   return f(s);
 }
 
@@ -53,8 +20,9 @@ int main(int argc,char*argv[]){
   //if(argc<2) return 1;
   int quit=0;
   senv*senv=senv_c("ftp.microsoft.com");
+  hini();  
   sock_a(senv->scon,21,senv->sin);
-  sread(senv->scon);
+  sread(senv->scon);sputs(senv->scon);
   while(!quit) quit=scmd(senv);
   senv_d(senv);
   return 0;

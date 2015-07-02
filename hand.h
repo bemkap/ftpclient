@@ -3,6 +3,12 @@
 
 #include"senv.h"
 
-typedef int (hand*)(senv*);
+enum { DSIZE=128 };
+typedef int (*hand)(senv*);
+
+hand hl[DSIZE];
+
+void hini();
+hand hget(char*);
 
 #endif

@@ -1,9 +1,21 @@
+#include<string.h>
+#include<stdio.h>
 #include"hand.h"
-#include"ltrie.h"
+#include"soio.h"
 
-void hpasv(senv*s){
+unsigned int hash(char*s){
+  unsigned int h=5381,c;
+  while((c=*s++)&&c!='\r'&&c!='\n'&&c!=' ') h=((h<<5)+h)+(unsigned int)c;
+  return h%DSIZE;
+}
+
+hand hget(char*s){return hl[hash(s)];}
+
+int hpasv(senv*s){
   int p1,p2;
   char*c;
+  sgets(s->scon);swrit(s->scon);
+  sread(s->scon);sputs(s->scon);
   c=strchr(s->scon->bf,',');
   sscanf(c,",%*d,%*d,%*d,%d,%d",&p1,&p2);
   if(s->cm==PASSIVE){
@@ -13,8 +25,10 @@ void hpasv(senv*s){
     s->cm=PASSIVE;
   }
   sock_a(s->sdat,p1*256+p2,s->sin);
+  return 0;
 }
-void hlist(senv*s){sread(s->sdat);}
+int hlist(senv*s){sread(s->sdat);sputs(s->sdat);return 0;}
+/*
 void hretr(senv*s){
   char fname[30];
   sread(s->sdat);
@@ -23,14 +37,20 @@ void hretr(senv*s){
   fwrite(s->sdat->bf,1,sizeof(s->sdat->bf),fout);
   fclose(fout);
 }
+*/
+int hrewr(senv*s){
+  sgets(s->scon);swrit(s->scon);
+  sread(s->scon);sputs(s->scon);
+  return 0;
+}
+int hquit(senv*s){hrewr(s);return 1;}
 
-trie*hand_i(){
-  trie*t=trie_c('\0');
-  trie_add(t,"user",huser);
-  trie_add(t,"pass",hpass);
-  trie_add(t,"pasv",hpasv);
-  trie_add(t,"list",hlist);
-  trie_add(t, "cwd", hcwd);
-  trie_add(t,"retr",hretr);
-  return t;
+void hini(){
+  hl[hash("user")]=hrewr;
+  hl[hash("pass")]=hrewr;
+  hl[hash( "cwd")]=hrewr;
+  hl[hash("pasv")]=hpasv;
+  hl[hash("list")]=hlist;
+  hl[hash("quit")]=hquit;
+  //hl[hash("retr")]=hretr;
 }

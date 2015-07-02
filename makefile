@@ -12,4 +12,4 @@ $(BINARY): $(OBJECTS)
 
 .PHONY: clean
 clean:
-	-rm $(OBJECTS) $(BINARY)
+	rm -f $(OBJECTS) $(BINARY)
