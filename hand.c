@@ -3,19 +3,20 @@
 #include"hand.h"
 #include"soio.h"
 
-unsigned int hash(char*s){
-  unsigned int h=5381,c;
-  while((c=*s++)&&c!='\r'&&c!='\n'&&c!=' ') h=((h<<5)+h)+(unsigned int)c;
+unsigned int hash(char*s,int l){
+  unsigned int h=5381,i;
+  for(i=0;i<l;++i) h=((h<<5)+h)+(unsigned int)s[i];
   return h%DSIZE;
 }
 
-hand hget(char*s){return hl[hash(s)];}
+hand hget(char*s){return hl[hash(s,4)];}
 
 int hpasv(senv*s){
   int p1,p2;
   char*c;
-  sgets(s->scon);swrit(s->scon);
-  sread(s->scon);sputs(s->scon);
+  swrit(s->scon);
+  sread(s->scon);
+  sputs(s->scon);
   c=strchr(s->scon->bf,',');
   sscanf(c,",%*d,%*d,%*d,%d,%d",&p1,&p2);
   if(s->cm==PASSIVE){
@@ -39,18 +40,19 @@ void hretr(senv*s){
 }
 */
 int hrewr(senv*s){
-  sgets(s->scon);swrit(s->scon);
-  sread(s->scon);sputs(s->scon);
+  swrit(s->scon);
+  sread(s->scon);
+  sputs(s->scon);
   return 0;
 }
 int hquit(senv*s){hrewr(s);return 1;}
 
 void hini(){
-  hl[hash("user")]=hrewr;
-  hl[hash("pass")]=hrewr;
-  hl[hash( "cwd")]=hrewr;
-  hl[hash("pasv")]=hpasv;
-  hl[hash("list")]=hlist;
-  hl[hash("quit")]=hquit;
+  hl[hash("user",4)]=hrewr;
+  hl[hash("pass",4)]=hrewr;
+  hl[hash("cwd ",4)]=hrewr;
+  hl[hash("pasv",4)]=hpasv;
+  hl[hash("list",4)]=hlist;
+  hl[hash("quit",4)]=hquit;
   //hl[hash("retr")]=hretr;
 }
