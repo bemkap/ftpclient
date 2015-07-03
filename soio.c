@@ -32,7 +32,8 @@ int swrit(sock*s){return write(s->sfd,s->bf,sizeof(s->bf)-1);}
 int sread(sock*s){
   int n=0;
   memset(s->bf,0,sizeof(s->bf));
-  do{n+=read(s->sfd,s->bf,sizeof(s->bf)-1);}while(inc(s->bf)&&0<n&&n<sizeof(s->bf)-1);
+  do{n+=read(s->sfd,s->bf+n,sizeof(s->bf)-1-n);}
+  while(inc(s->bf)&&0<n&&n<sizeof(s->bf)-1);
   s->bf[n]=0;
   return n;
 }

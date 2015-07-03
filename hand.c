@@ -11,12 +11,16 @@ unsigned int hash(char*s,int l){
 
 hand hget(char*s){return hl[hash(s,4)];}
 
-int hpasv(senv*s){
-  int p1,p2;
-  char*c;
+int hrewr(senv*s){
   swrit(s->scon);
   sread(s->scon);
   sputs(s->scon);
+  return 0;
+}
+int hpasv(senv*s){
+  int p1,p2;
+  char*c;
+  hrewr(s);
   c=strchr(s->scon->bf,',');
   sscanf(c,",%*d,%*d,%*d,%d,%d",&p1,&p2);
   if(s->cm==PASSIVE){
@@ -28,21 +32,27 @@ int hpasv(senv*s){
   sock_a(s->sdat,p1*256+p2,s->sin);
   return 0;
 }
-int hlist(senv*s){sread(s->sdat);sputs(s->sdat);return 0;}
-/*
-void hretr(senv*s){
-  char fname[30];
-  sread(s->sdat);
-  sscanf(fname,"retr %s",s->scon->bf);  
-  FILE*fout=fopen(fname,"w");
-  fwrite(s->sdat->bf,1,sizeof(s->sdat->bf),fout);
-  fclose(fout);
+int hlist(senv*s){
+  int n;
+  hrewr(s);
+  do{
+    n=sread(s->sdat);
+    sputs(s->sdat);
+  }while(n==sizeof(s->sdat->bf)-1);
+  return 0;
 }
-*/
-int hrewr(senv*s){
-  swrit(s->scon);
-  sread(s->scon);
-  sputs(s->scon);
+int hretr(senv*s){
+  char fname[30];
+  FILE*fout;
+  int n;
+  hrewr(s);  
+  sscanf(fname,"retr %s",s->scon->bf);  
+  fout=fopen(fname,"w");
+  do{
+    n=sread(s->sdat);  
+    fwrite(s->sdat->bf,1,sizeof(s->sdat->bf),fout);
+  }while(n==sizeof(s->sdat->bf)-1);
+  fclose(fout);
   return 0;
 }
 int hquit(senv*s){hrewr(s);return 1;}
@@ -54,5 +64,5 @@ void hini(){
   hl[hash("pasv",4)]=hpasv;
   hl[hash("list",4)]=hlist;
   hl[hash("quit",4)]=hquit;
-  //hl[hash("retr")]=hretr;
+  hl[hash("retr",4)]=hretr;
 }
