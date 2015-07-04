@@ -30,10 +30,12 @@ int sputs(sock*s){return fputs(s->bf,stdout);}
 int swrit(sock*s){return write(s->sfd,s->bf,sizeof(s->bf)-1);}
 
 int sread(sock*s){
-  int n=0;
+  int l=1,n=0,m;
   memset(s->bf,0,sizeof(s->bf));
-  do{n+=read(s->sfd,s->bf+n,sizeof(s->bf)-1-n);}
-  while(inc(s->bf)&&0<n&&n<sizeof(s->bf)-1);
-  s->bf[n]=0;
+  do{
+    m=n;
+    do{n+=read(s->sfd,s->bf+n,1);}while(s->bf[n-1]!='\n');
+    l=s->bf[m+3]==' '&&0==strncmp(s->bf,s->bf+m,3);
+  }while(!l);
   return n;
 }
