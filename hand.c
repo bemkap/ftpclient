@@ -58,9 +58,8 @@ int hretr(senv*s){
 int hquit(senv*s){hrewr(s);return 1;}
 
 void hini(){
-  hl[hash("user",4)]=hrewr;
-  hl[hash("pass",4)]=hrewr;
-  hl[hash("cwd ",4)]=hrewr;
+  int i;
+  for(i=0;i<DSIZE;++i) hl[i]=hrewr;
   hl[hash("pasv",4)]=hpasv;
   hl[hash("list",4)]=hlist;
   hl[hash("quit",4)]=hquit;
