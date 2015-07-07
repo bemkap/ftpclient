@@ -8,8 +8,6 @@
 #include"hand.h"
 #include"chec.h"
 
-// main
-
 int scmd(senv*s){
   sgets(s->scon);
   hand f=hget(s->scon->bf);

@@ -16,6 +16,7 @@ senv*senv_c(const char*ad){
   freeaddrinfo(aai);
 
   s->cm=ACTIVE;
+  s->tm=STREAM;
   s->scon=sock_c();
   s->sdat=sock_c();
   return s;

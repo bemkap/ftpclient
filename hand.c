@@ -1,5 +1,6 @@
 #include<string.h>
 #include<stdio.h>
+#include"chec.h"
 #include"hand.h"
 #include"soio.h"
 
@@ -35,10 +36,21 @@ int hpasv(senv*s){
 int hlist(senv*s){
   int n;
   hrewr(s);
-  do{
-    n=sread(s->sdat);
+  switch(s->tm){
+  case STREAM:
+    do{
+      n=sreads(s->sdat);
+      sputs(s->sdat);
+    }while(n==sizeof(s->sdat->bf)-1);
+    sread(s->scon);
+    sputs(s->scon);break;
+  case BLOCK:
+    n=sreadb(s->sdat);
     sputs(s->sdat);
-  }while(n==sizeof(s->sdat->bf)-1);
+    sread(s->scon);
+    sputs(s->scon);break;
+  case COMPRESSED: break;
+  }
   return 0;
 }
 int hretr(senv*s){
@@ -46,14 +58,26 @@ int hretr(senv*s){
   FILE*fout;
   int n;
   hrewr(s);  
-  sscanf(fname,"retr %s",s->scon->bf);  
+  sscanf(s->scon->bf,"retr %s",fname);
   fout=fopen(fname,"w");
   do{
-    n=sread(s->sdat);  
+    n=sreads(s->sdat);
     fwrite(s->sdat->bf,1,sizeof(s->sdat->bf),fout);
   }while(n==sizeof(s->sdat->bf)-1);
   fclose(fout);
+  hrewr(s);
   return 0;
+}
+int hmode(senv*s){
+  char m;
+  sscanf(&m,"type %c",s->scon->bf);
+  switch(m){
+  case 's': s->tm=STREAM;break;
+  case 'b': s->tm=BLOCK;break;
+  case 'c': s->tm=COMPRESSED;break;
+  default : break;
+  }
+  return hrewr(s);
 }
 int hquit(senv*s){hrewr(s);return 1;}
 
@@ -64,4 +88,5 @@ void hini(){
   hl[hash("list",4)]=hlist;
   hl[hash("quit",4)]=hquit;
   hl[hash("retr",4)]=hretr;
+  hl[hash("mode",4)]=hmode;
 }
