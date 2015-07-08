@@ -4,6 +4,8 @@
 #include<unistd.h>
 #include"soio.h"
 
+#define min(a,b) ((a)<(b)?(a):(b))
+
 void valid(char*str,int sz){
   int l=strlen(str);
   if(sz>l){str[l-1]='\r';str[l]='\n';}
@@ -33,10 +35,8 @@ int sread(sock*s){
 }
 
 int sreads(sock*s){
-  int n;
   memset(s->bf,0,sizeof(s->bf));
-  n=read(s->sfd,s->bf,sizeof(s->bf));
-  return n;
+  return read(s->sfd,s->bf,sizeof(s->bf));
 }
 
 int sreadb(sock*s){
@@ -44,6 +44,5 @@ int sreadb(sock*s){
   memset(s->bf,0,sizeof(s->bf));
   read(s->sfd,&d,1);
   read(s->sfd,bc,2);
-  printf("%x %x%x\n",d,bc[0],bc[1]);
-  return 0;
+  return read(s->sfd,s->bf,min(sizeof(s->bf),bc[0]*0x100+bc[1]));
 }

@@ -41,7 +41,8 @@ int hlist(senv*s){
     do{
       n=sreads(s->sdat);
       sputs(s->sdat);
-    }while(n==sizeof(s->sdat->bf)-1);
+    }while(n==sizeof(s->sdat->bf));
+    printf("%d\n",n);
     sread(s->scon);
     sputs(s->scon);break;
   case BLOCK:
@@ -70,7 +71,7 @@ int hretr(senv*s){
 }
 int hmode(senv*s){
   char m;
-  sscanf(&m,"type %c",s->scon->bf);
+  sscanf(s->scon->bf,"mode %c",&m);
   switch(m){
   case 's': s->tm=STREAM;break;
   case 'b': s->tm=BLOCK;break;
