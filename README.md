@@ -17,7 +17,7 @@ transfer
 	pasv
 			type    toma 2 argumentos,ascii(a) ya esta.faltan image(i),ebcdict(e)
 	stru			falta implementacion,file(f) ya esta.faltan record(r) y page(p)
-	mode			falta implementacion,stream(s) ya esta.faltan block(b) y compressed(c)
+	mode			falta implementacion,stream(s) ya esta.block(b) algo.falta compressed(c)
 servicios
 	retr			nombre del archivo mal
 			stor    no implementado

@@ -46,3 +46,10 @@ int sreadb(sock*s){
   read(s->sfd,bc,2);
   return read(s->sfd,s->bf,min(sizeof(s->bf),bc[0]*0x100+bc[1]));
 }
+
+int srewr(sock*s){
+  swrit(s);
+  sread(s);
+  sputs(s);
+  return 0;
+}
