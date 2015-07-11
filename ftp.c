@@ -18,9 +18,10 @@ int main(int argc,char*argv[]){
   //if(argc<2) return 1;
   int quit=0;
   senv*senv=senv_c("ftp.microsoft.com");
-  hini();  
+  hini();
   sock_a(senv->scon,21,senv->sin);
-  sread(senv->scon);sputs(senv->scon);
+  sread(senv->scon);
+  sputs(senv->scon);
   while(!quit) quit=scmd(senv);
   senv_d(senv);
   return 0;

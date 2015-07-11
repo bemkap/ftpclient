@@ -28,11 +28,11 @@ rd getrd(tranmode tm){
 
 int hrewr(senv*s){return srewr(s->scon);}
 int hpasv(senv*s){
-  int p1,p2;
+  unsigned short p1,p2;
   char*c;
   hrewr(s);
   c=strchr(s->scon->bf,',');
-  sscanf(c,",%*d,%*d,%*d,%d,%d",&p1,&p2);
+  sscanf(c,",%*d,%*d,%*d,%hd,%hd",&p1,&p2);
   if(s->cm==PASSIVE){
     sock_d(s->sdat);
     s->sdat=sock_c();
@@ -46,6 +46,7 @@ int hlist(senv*s){
   int n;
   rd r=getrd(s->tm);
   hrewr(s);
+  if(s->cm==ACTIVE) accept(s->scon->sfd,NULL,NULL);
   do{
     n=r(s->sdat);
     sputs(s->sdat);
@@ -59,7 +60,8 @@ int hretr(senv*s){
   FILE*fout;
   int n;
   rd r=getrd(s->tm);
-  hrewr(s);  
+  hrewr(s);
+  if(s->cm==ACTIVE) accept(s->scon->sfd,NULL,NULL);
   sscanf(s->scon->bf,"retr %s",fname);
   fout=fopen(fname,"w");
   do{
@@ -85,15 +87,20 @@ int hmode(senv*s){
 int hport(senv*s){
   struct ifaddrs*addrs,*tmp;
   unsigned int ip;
-  
+  unsigned short p;
+
+  sscanf(s->scon->bf,"port %hu",&p);
+  sock_b(s->scon,p);
   getifaddrs(&addrs);
   for(tmp=addrs;tmp;tmp=tmp->ifa_next){
     if(tmp->ifa_addr&&tmp->ifa_addr->sa_family==AF_INET&&0!=strcmp(tmp->ifa_name,"lo")){
       ip=((struct sockaddr_in*)tmp->ifa_addr)->sin_addr.s_addr;
-      sprintf(s->scon->bf,"port %d,%d,%d,%d,%d,%d\r\n",ip&0xff,ip>>8&0xff,ip>>16&0xff,ip>>24&0xff,0,0);
+      sprintf(s->scon->bf,"port %hd,%hd,%hd,%hd,%hd,%hd\r\n",ip&0xff,ip>>8&0xff,ip>>16&0xff,ip>>24&0xff,s->scon->lp>>8&0xff,s->scon->lp&0xff);
     }
   }
   freeifaddrs(addrs);
+  puts(s->scon->bf);
+  s->cm=ACTIVE;
   return hrewr(s);
 }
 int hquit(senv*s){hrewr(s);return 1;}
