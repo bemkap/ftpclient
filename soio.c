@@ -1,5 +1,6 @@
 #include<string.h>
 #include<stdlib.h>
+#include<ctype.h>
 #include<stdio.h>
 #include<unistd.h>
 #include"soio.h"
@@ -12,10 +13,12 @@ void valid(char*str,int sz){
 }
 
 int sgets(sock*s){
+  int i;
   printf("  ");
   memset(s->bf,0,sizeof(s->bf));
   fgets(s->bf,sizeof(s->bf),stdin);
   valid(s->bf,sizeof(s->bf));
+  for(i=0;i<strlen(s->bf);++i) s->bf[i]=toupper(s->bf[i]);
   return 0;
 }
 

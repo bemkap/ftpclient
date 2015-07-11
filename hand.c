@@ -46,7 +46,7 @@ int hlist(senv*s){
   int n;
   rd r=getrd(s->tm);
   hrewr(s);
-  if(s->cm==ACTIVE) accept(s->scon->sfd,NULL,NULL);
+  if(s->cm==ACTIVE) chec(accept(s->sdat->sfd,NULL,NULL),"accept");
   do{
     n=r(s->sdat);
     sputs(s->sdat);
@@ -60,10 +60,10 @@ int hretr(senv*s){
   FILE*fout;
   int n;
   rd r=getrd(s->tm);
+  sscanf(s->scon->bf,"RETR %s",fname);
+  fout=fopen(fname,"w");  
   hrewr(s);
-  if(s->cm==ACTIVE) accept(s->scon->sfd,NULL,NULL);
-  sscanf(s->scon->bf,"retr %s",fname);
-  fout=fopen(fname,"w");
+  if(s->cm==ACTIVE) chec(accept(s->sdat->sfd,NULL,NULL),"accept");
   do{
     n=r(s->sdat);
     fwrite(s->sdat->bf,1,sizeof(s->sdat->bf),fout);
@@ -75,7 +75,7 @@ int hretr(senv*s){
 }
 int hmode(senv*s){
   char m;
-  sscanf(s->scon->bf,"mode %c",&m);
+  sscanf(s->scon->bf,"MODE %c",&m);
   switch(m){
   case 's': s->tm=STREAM;break;
   case 'b': s->tm=BLOCK;break;
@@ -88,18 +88,17 @@ int hport(senv*s){
   struct ifaddrs*addrs,*tmp;
   unsigned int ip;
   unsigned short p;
-
-  sscanf(s->scon->bf,"port %hu",&p);
-  sock_b(s->scon,p);
+  sscanf(s->scon->bf,"PORT %hd",&p);
+  sock_b(s->sdat,p);
   getifaddrs(&addrs);
   for(tmp=addrs;tmp;tmp=tmp->ifa_next){
     if(tmp->ifa_addr&&tmp->ifa_addr->sa_family==AF_INET&&0!=strcmp(tmp->ifa_name,"lo")){
       ip=((struct sockaddr_in*)tmp->ifa_addr)->sin_addr.s_addr;
-      sprintf(s->scon->bf,"port %hd,%hd,%hd,%hd,%hd,%hd\r\n",ip&0xff,ip>>8&0xff,ip>>16&0xff,ip>>24&0xff,s->scon->lp>>8&0xff,s->scon->lp&0xff);
+      sprintf(s->scon->bf,"PORT %hd,%hd,%hd,%hd,%hd,%hd\r\n",ip&0xff,ip>>8&0xff,ip>>16&0xff,ip>>24&0xff,s->sdat->lp>>8&0xff,s->sdat->lp&0xff);
     }
   }
   freeifaddrs(addrs);
-  puts(s->scon->bf);
+  printf("  %s",s->scon->bf);
   s->cm=ACTIVE;
   return hrewr(s);
 }
@@ -108,10 +107,10 @@ int hquit(senv*s){hrewr(s);return 1;}
 void hini(){
   int i;
   for(i=0;i<DSIZE;++i) hl[i]=hrewr;
-  hl[hash("pasv",4)]=hpasv;
-  hl[hash("list",4)]=hlist;
-  hl[hash("quit",4)]=hquit;
-  hl[hash("retr",4)]=hretr;
-  hl[hash("mode",4)]=hmode;
-  hl[hash("port",4)]=hport;
+  hl[hash("PASV",4)]=hpasv;
+  hl[hash("LIST",4)]=hlist;
+  hl[hash("QUIT",4)]=hquit;
+  hl[hash("RETR",4)]=hretr;
+  hl[hash("MODE",4)]=hmode;
+  hl[hash("PORT",4)]=hport;
 }
