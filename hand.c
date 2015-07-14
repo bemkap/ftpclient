@@ -46,7 +46,7 @@ int hlist(senv*s){
   int n;
   rd r=getrd(s->tm);
   hrewr(s);
-  if(s->cm==ACTIVE) chec(accept(s->sdat->sfd,NULL,NULL),"accept");
+  if(s->cm==ACTIVE) chec(accept(s->sdat->sfd,NULL,NULL),"accept");  
   do{
     n=r(s->sdat);
     sputs(s->sdat);
@@ -98,7 +98,7 @@ int hport(senv*s){
     }
   }
   freeifaddrs(addrs);
-  printf("  %s",s->scon->bf);
+  printf("   %s",s->scon->bf);
   s->cm=ACTIVE;
   return hrewr(s);
 }

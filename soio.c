@@ -14,7 +14,7 @@ void valid(char*str,int sz){
 
 int sgets(sock*s){
   int i;
-  printf("  ");
+  printf("   ");
   memset(s->bf,0,sizeof(s->bf));
   fgets(s->bf,sizeof(s->bf),stdin);
   valid(s->bf,sizeof(s->bf));
