@@ -1,5 +1,6 @@
 #include<string.h>
 #include<stdio.h>
+#include<stdlib.h>
 #include<sys/types.h>
 #include<sys/socket.h>
 #include<ifaddrs.h>
@@ -46,29 +47,31 @@ int hlist(senv*s){
   int n;
   rd r=getrd(s->tm);
   hrewr(s);
-  if(s->cm==ACTIVE) chec(accept(s->sdat->sfd,NULL,NULL),"accept");  
+  if(s->cm==ACTIVE)
+    s->sdat->sfd=chec(accept(s->sdat->sfd,NULL,NULL),"accept");
   do{
     n=r(s->sdat);
     sputs(s->sdat);
   }while(n==sizeof(s->sdat->bf));
   sread(s->scon);
-  sputs(s->scon);  
+  sputs(s->scon);
   return 0;
 }
 int hretr(senv*s){
-  char fname[30];
-  FILE*fout;
+  char fn[30];
+  FILE*fp;
   int n;
   rd r=getrd(s->tm);
-  sscanf(s->scon->bf,"RETR %s",fname);
-  fout=fopen(fname,"w");  
+  sscanf(s->scon->bf,"RETR %s",fn);
+  fp=fopen(fn,"w");  
   hrewr(s);
-  if(s->cm==ACTIVE) chec(accept(s->sdat->sfd,NULL,NULL),"accept");
+  if(s->cm==ACTIVE)
+    s->sdat->sfd=chec(accept(s->sdat->sfd,NULL,NULL),"accept");
   do{
     n=r(s->sdat);
-    fwrite(s->sdat->bf,1,sizeof(s->sdat->bf),fout);
+    fwrite(s->sdat->bf,1,sizeof(s->sdat->bf),fp);
   }while(n==sizeof(s->sdat->bf));
-  fclose(fout);
+  fclose(fp);
   sread(s->scon);
   sputs(s->scon);
   return 0;
@@ -85,23 +88,18 @@ int hmode(senv*s){
   return hrewr(s);
 }
 int hport(senv*s){
-  struct ifaddrs*addrs,*tmp;
-  unsigned int ip;
-  unsigned short p;
+  FILE*fp;
+  short ip[4],p;
   sscanf(s->scon->bf,"PORT %hd",&p);
   sock_b(s->sdat,p);
-  getifaddrs(&addrs);
-  for(tmp=addrs;tmp;tmp=tmp->ifa_next){
-    if(tmp->ifa_addr&&tmp->ifa_addr->sa_family==AF_INET&&0!=strcmp(tmp->ifa_name,"lo")){
-      ip=((struct sockaddr_in*)tmp->ifa_addr)->sin_addr.s_addr;
-      sprintf(s->scon->bf,"PORT %hd,%hd,%hd,%hd,%hd,%hd\r\n",ip&0xff,ip>>8&0xff,ip>>16&0xff,ip>>24&0xff,s->sdat->lp>>8&0xff,s->sdat->lp&0xff);
-    }
-  }
-  freeifaddrs(addrs);
+  fp=popen("curl -s icanhazip.com","r");
+  fscanf(fp,"%hd.%hd.%hd.%hd",ip,ip+1,ip+2,ip+3);
+  sprintf(s->scon->bf,"PORT %hd,%hd,%hd,%hd,%hd,%hd\r\n",ip[0],ip[1],ip[2],ip[3],s->sdat->lp>>8&0xff,s->sdat->lp&0xff);
   printf("   %s",s->scon->bf);
+  pclose(fp);
   s->cm=ACTIVE;
   return hrewr(s);
-}
+}  
 int hquit(senv*s){hrewr(s);return 1;}
 
 void hini(){
