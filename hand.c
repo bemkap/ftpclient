@@ -6,7 +6,6 @@
 #include<ifaddrs.h>
 #include<netinet/in.h>
 #include<arpa/inet.h>
-#include"chec.h"
 #include"hand.h"
 #include"soio.h"
 
@@ -29,9 +28,8 @@ rd getrd(tranmode tm){
 
 int hrewr(senv*s){return srewr(s->scon);}
 int hpasv(senv*s){
-  unsigned short p1,p2;
-  char*c;
-  hrewr(s);
+  unsigned short p1,p2;char*c;int r;
+  if((r=hrewr(s))<0) return r;
   c=strchr(s->scon->bf,',');
   sscanf(c,",%*d,%*d,%*d,%hd,%hd",&p1,&p2);
   if(s->cm==PASSIVE){
@@ -40,17 +38,14 @@ int hpasv(senv*s){
   }else{
     s->cm=PASSIVE;
   }
-  sock_a(s->sdat,p1*256+p2,s->sin);
-  return 0;
+  return sock_a(s->sdat,p1*256+p2,s->sin);
 }
 int hlist(senv*s){
-  int n;
-  rd r=getrd(s->tm);
-  hrewr(s);
-  if(s->cm==ACTIVE)
-    s->sdat->sfd=chec(accept(s->sdat->sfd,NULL,NULL),"accept");
+  int n,r;rd rd=getrd(s->tm);
+  if((r=hrewr(s))<0) return r;
+  if(s->cm==ACTIVE) s->sdat->sfd=accept(s->sdat->sfd,NULL,NULL);;  
   do{
-    n=r(s->sdat);
+    n=rd(s->sdat);
     sputs(s->sdat);
   }while(n==sizeof(s->sdat->bf));
   sread(s->scon);
