@@ -6,7 +6,6 @@
 #include"senv.h"
 #include"soio.h"
 #include"hand.h"
-#include"chec.h"
 
 int scmd(senv*s){
   sgets(s->scon);
@@ -15,8 +14,8 @@ int scmd(senv*s){
 }
 
 int main(int argc,char*argv[]){
-  //if(argc<2) return 1;
-  int quit=0,r;senv*senv=senv_c("ftp.microsoft.com");
+  if(argc<2) return 1;
+  int quit=0,r;senv*senv=senv_c(argv[1]);
   hini();
   if(sock_a(senv->scon,21,senv->sin)<0) return 1;
   sread(senv->scon);
