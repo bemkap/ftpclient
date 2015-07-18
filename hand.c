@@ -17,7 +17,6 @@ unsigned int hash(char*s,int l){
 
 hand hget(char*s){return hl[hash(s,4)];}
 
-typedef int (*rd)(sock*);
 rd getrd(tranmode tm){
   switch(tm){
   case STREAM: return sreads;
@@ -34,7 +33,7 @@ int hpasv(senv*s){
   sscanf(c,",%*d,%*d,%*d,%hd,%hd",&p1,&p2);
   if(s->cm==PASSIVE){
     sock_d(s->sdat);
-    s->sdat=sock_c();
+    if(!(s->sdat=sock_c())) return -1;
   }else{
     s->cm=PASSIVE;
   }
@@ -43,33 +42,29 @@ int hpasv(senv*s){
 int hlist(senv*s){
   int n,r;rd rd=getrd(s->tm);
   if((r=hrewr(s))<0) return r;
-  if(s->cm==ACTIVE) s->sdat->sfd=accept(s->sdat->sfd,NULL,NULL);;  
+  if(s->cm==ACTIVE)
+    if((s->sdat->sfd=accept(s->sdat->sfd,NULL,NULL))<0) return s->sdat->sfd;
   do{
     n=rd(s->sdat);
     sputs(s->sdat);
   }while(n==sizeof(s->sdat->bf));
-  sread(s->scon);
-  sputs(s->scon);
-  return 0;
+  if((r=sread(s->scon))<0) return r;
+  return sputs(s->scon);
 }
 int hretr(senv*s){
-  char fn[30];
-  FILE*fp;
-  int n;
-  rd r=getrd(s->tm);
+  char fn[30];FILE*fp;int n,r;rd rd=getrd(s->tm);
   sscanf(s->scon->bf,"RETR %s",fn);
-  fp=fopen(fn,"w");  
-  hrewr(s);
+  if(!(fp=fopen(fn,"w"))) return -1;
+  if((r=hrewr(s))<0) return r;
   if(s->cm==ACTIVE)
-    s->sdat->sfd=chec(accept(s->sdat->sfd,NULL,NULL),"accept");
+    if((s->sdat->sfd=accept(s->sdat->sfd,NULL,NULL))<0) return s->sdat->sfd;
   do{
-    n=r(s->sdat);
+    n=rd(s->sdat);
     fwrite(s->sdat->bf,1,sizeof(s->sdat->bf),fp);
   }while(n==sizeof(s->sdat->bf));
   fclose(fp);
-  sread(s->scon);
-  sputs(s->scon);
-  return 0;
+  if((r=sread(s->scon))<0) return r;
+  return sputs(s->scon);
 }
 int hmode(senv*s){
   char m;

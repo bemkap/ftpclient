@@ -52,8 +52,8 @@ int sreadb(sock*s){
 }
 
 int srewr(sock*s){
-  swrit(s);
-  sread(s);
-  sputs(s);
-  return 0;
+  int r;
+  if((r=swrit(s))<0) return r;
+  if((r=sread(s))<0) return r;
+  return !(sputs(s)>0);
 }

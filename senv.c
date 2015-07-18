@@ -20,9 +20,9 @@ senv*senv_c(const char*ad){
   s->cm=ACTIVE;
   s->tm=STREAM;
   s->scon=sock_c();
-  if(s->scon<0){perror("scon failed");free(s->sin);free(s);return NULL;}
+  if(s->scon<0){free(s->sin);free(s);return NULL;}
   s->sdat=sock_c();
-  if(s->sdat<0){perror("sdat failed");free(s->sin);sock_d(s->scon);free(s);return NULL;}
+  if(s->sdat<0){free(s->sin);sock_d(s->scon);free(s);return NULL;}
   return s;
 }
 
