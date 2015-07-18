@@ -31,12 +31,9 @@ int hpasv(senv*s){
   if((r=hrewr(s))<0) return r;
   c=strchr(s->scon->bf,',');
   sscanf(c,",%*d,%*d,%*d,%hd,%hd",&p1,&p2);
-  if(s->cm==PASSIVE){
-    sock_d(s->sdat);
-    if(!(s->sdat=sock_c())) return -1;
-  }else{
-    s->cm=PASSIVE;
-  }
+  sock_d(s->sdat);
+  if(!(s->sdat=sock_c())) return -1;
+  if(s->cm!=PASSIVE) s->cm=PASSIVE;
   return sock_a(s->sdat,p1*256+p2,s->sin);
 }
 int hlist(senv*s){
@@ -46,10 +43,10 @@ int hlist(senv*s){
     if((s->sdat->sfd=accept(s->sdat->sfd,NULL,NULL))<0) return s->sdat->sfd;
   do{
     n=rd(s->sdat);
-    sputs(s->sdat);
+    if(sputs(s->sdat)==EOF) return -1;
   }while(n==sizeof(s->sdat->bf));
   if((r=sread(s->scon))<0) return r;
-  return sputs(s->scon);
+  return sputs(s->scon)?0:-1;
 }
 int hretr(senv*s){
   char fn[30];FILE*fp;int n,r;rd rd=getrd(s->tm);
@@ -60,11 +57,11 @@ int hretr(senv*s){
     if((s->sdat->sfd=accept(s->sdat->sfd,NULL,NULL))<0) return s->sdat->sfd;
   do{
     n=rd(s->sdat);
-    fwrite(s->sdat->bf,1,sizeof(s->sdat->bf),fp);
+    if(fwrite(s->sdat->bf,1,sizeof(s->sdat->bf),fp)<0) return -1;
   }while(n==sizeof(s->sdat->bf));
   fclose(fp);
   if((r=sread(s->scon))<0) return r;
-  return sputs(s->scon);
+  return sputs(s->scon)?0:-1;
 }
 int hmode(senv*s){
   char m;
@@ -78,14 +75,14 @@ int hmode(senv*s){
   return hrewr(s);
 }
 int hport(senv*s){
-  FILE*fp;
-  short ip[4],p;
+  FILE*fp;short ip[4],p;
   sscanf(s->scon->bf,"PORT %hd",&p);
-  sock_b(s->sdat,p);
-  fp=popen("curl -s icanhazip.com","r");
+  sock_d(s->sdat);
+  if(!(s->sdat=sock_c())) return -1;
+  if(sock_b(s->sdat,p)<0) return -1;
+  if(!(fp=popen("curl -s icanhazip.com","r"))) return -1;
   fscanf(fp,"%hd.%hd.%hd.%hd",ip,ip+1,ip+2,ip+3);
   sprintf(s->scon->bf,"PORT %hd,%hd,%hd,%hd,%hd,%hd\r\n",ip[0],ip[1],ip[2],ip[3],s->sdat->lp>>8&0xff,s->sdat->lp&0xff);
-  printf("   %s",s->scon->bf);
   pclose(fp);
   s->cm=ACTIVE;
   return hrewr(s);

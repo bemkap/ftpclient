@@ -16,13 +16,15 @@ int scmd(senv*s){
 
 int main(int argc,char*argv[]){
   //if(argc<2) return 1;
-  int quit=0;
-  senv*senv=senv_c("ftp.microsoft.com");
+  int quit=0,r;senv*senv=senv_c("ftp.microsoft.com");
   hini();
-  sock_a(senv->scon,21,senv->sin);
+  if(sock_a(senv->scon,21,senv->sin)<0) return 1;
   sread(senv->scon);
   sputs(senv->scon);
-  while(!quit) quit=scmd(senv);
+  while(!quit){
+    if((r=scmd(senv))<0) puts("error,command not executed");
+    else if(r==1) quit=1;
+  }
   senv_d(senv);
   return 0;
 }
