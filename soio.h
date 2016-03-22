@@ -1,6 +1,4 @@
-#ifndef SOIO_H
-#define SOIO_H
-
+#pragma once
 #include"sock.h"
 
 int sgets(sock*);
@@ -10,5 +8,3 @@ int srewr(sock*);
 int sread(sock*);  // read connection
 int sreads(sock*); // read stream
 int sreadb(sock*); // read block
-
-#endif

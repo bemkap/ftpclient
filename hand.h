@@ -1,6 +1,4 @@
-#ifndef HAND_H
-#define HAND_H
-
+#pragma once
 #include"senv.h"
 
 enum { DSIZE=128 };
@@ -11,5 +9,3 @@ hand hl[DSIZE];
 
 void hini();
 hand hget(char*);
-
-#endif
